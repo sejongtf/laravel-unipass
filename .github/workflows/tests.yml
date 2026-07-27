@@ -1,0 +1,37 @@
+name: tests
+
+on:
+  push:
+    branches: ['5.x']
+  pull_request:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: true
+      matrix:
+        # composer.json 은 php >= 8.2 이지만 dev 의존성(phpunit ^12)이 8.3+ 를 요구한다
+        php: ['8.3', '8.4']
+
+    name: PHP ${{ matrix.php }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: json, simplexml
+          coverage: none
+
+      - name: Install dependencies
+        uses: ramsey/composer-install@v3
+        with:
+          composer-options: '--prefer-dist --no-progress'
+
+      - name: Run tests
+        run: composer test
